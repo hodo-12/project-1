@@ -3,99 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>투자 데이터 & 로또 추첨기</title>
+    <title>코스피 투자자별 매매동향 분석</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --inst-color: #ff7272;
+            --indiv-color: #fbc400;
+            --foreign-color: #4a90e2;
+        }
         body {
-            font-family: 'Pretendard', sans-serif;
-            background-color: #f4f7f6;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #f8f9fa;
             margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 30px;
         }
-
-        .section {
+        .dashboard {
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .dashboard { grid-template-columns: 1fr; }
+        }
+        .card {
             background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 800px;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
             text-align: center;
         }
-
-        h2 { color: #333; margin-bottom: 1.5rem; }
-
-        /* Lotto Styles */
-        .numbers-container {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 2rem;
-            min-height: 60px;
-        }
-        .ball {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #eee;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-weight: bold;
-            box-shadow: inset -3px -3px 7px rgba(0,0,0,0.2);
-        }
-        button {
-            padding: 10px 25px;
-            background-color: #4a90e2;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        /* Chart Styles */
-        .chart-container {
-            position: relative;
-            height: 400px;
-            width: 100%;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
+        h1 { color: #222; margin-bottom: 30px; width: 100%; text-align: center; }
+        h2 { color: #555; font-size: 1.1rem; margin-bottom: 20px; }
+        .chart-container { position: relative; height: 350px; width: 100%; }
+        .latest-info { margin-top: 15px; font-size: 0.9rem; color: #666; }
     </style>
 </head>
 <body>
 
-    <!-- 투자 데이터 시각화 섹션 -->
-    <div class="section">
-        <h2>코스피 투자자별 매매동향 (비율)</h2>
-        <div class="chart-container">
-            <canvas id="investorChart"></canvas>
+    <h1>코스피 투자자별 매매동향</h1>
+
+    <div class="dashboard">
+        <!-- 비율 시각화 (최근 일자 기준) -->
+        <div class="card">
+            <h2>최근 거래 비중 (2026-02-23)</h2>
+            <div class="chart-container">
+                <canvas id="ratioChart"></canvas>
+            </div>
+            <div class="latest-info" id="ratio-legend"></div>
+        </div>
+
+        <!-- 추세 시각화 (전체 기간) -->
+        <div class="card">
+            <h2>일자별 순매수 추이</h2>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
         </div>
     </div>
 
-    <!-- 로또 추첨기 섹션 -->
-    <div class="section">
-        <h2>로또 번호 추첨기</h2>
-        <div id="lotto-numbers" class="numbers-container">
-            <div class="ball" style="color: #999">?</div>
-            <div class="ball" style="color: #999">?</div>
-            <div class="ball" style="color: #999">?</div>
-            <div class="ball" style="color: #999">?</div>
-            <div class="ball" style="color: #999">?</div>
-            <div class="ball" style="color: #999">?</div>
-        </div>
-        <button id="generate-btn">번호 생성하기</button>
-    </div>
+    <script>
+        const data = [
+            {date: '2026-02-23', inst: -1365589, indiv: 2368275, foreign: -1179826},
+            {date: '2026-02-20', inst: 903343, indiv: -345127, foreign: -712880},
+            {date: '2026-02-19', inst: 1394876, indiv: -683740, foreign: -872276},
+            {date: '2026-02-13', inst: -998369, indiv: 1792993, foreign: -940583},
+            {date: '2026-02-12', inst: 1044122, indiv: -4303988, foreign: 3159894},
+            {date: '2026-02-11', inst: 389912, indiv: -1472360, foreign: 905526},
+            {date: '2026-02-10', inst: 119710, indiv: -467377, foreign: 159554},
+            {date: '2026-02-09', inst: 3027332, indiv: -3689198, foreign: 501395},
+            {date: '2026-02-06', inst: 509044, indiv: 2440797, foreign: -3162705},
+            {date: '2026-02-05', inst: -3425569, indiv: 8154850, foreign: -5073670},
+            {date: '2026-02-04', inst: 1170169, indiv: -351578, foreign: -993770},
+            {date: '2026-02-03', inst: 2070462, indiv: -2885178, foreign: 745376},
+            {date: '2026-02-02', inst: -2889940, indiv: 5268908, foreign: -2489186},
+            {date: '2026-01-30', inst: -2328055, indiv: 4083588, foreign: -1949628},
+            {date: '2026-01-29', inst: -1993751, indiv: 3371592, foreign: -1500385},
+            {date: '2026-01-28', inst: -3489468, indiv: 3262219, foreign: 369282},
+            {date: '2026-01-27', inst: -899916, indiv: -23147, foreign: 925220},
+            {date: '2026-01-26', inst: -3414882, indiv: 3554502, foreign: -163296},
+            {date: '2026-01-23', inst: -81202, indiv: -217022, foreign: 172239}
+        ];
 
-    <script src="main.js"></script>
+        // 1. 비율 차트 (최근 일자: 2026-02-23)
+        const latest = data[0];
+        const absSum = Math.abs(latest.inst) + Math.abs(latest.indiv) + Math.abs(latest.foreign);
+        
+        new Chart(document.getElementById('ratioChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['기관', '개인', '외국인'],
+                datasets: [{
+                    data: [Math.abs(latest.inst), Math.abs(latest.indiv), Math.abs(latest.foreign)],
+                    backgroundColor: ['#ff7272', '#fbc400', '#4a90e2'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // 2. 추세 차트 (전체 기간)
+        const revData = [...data].reverse();
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: {
+                labels: revData.map(d => d.date.substring(5)),
+                datasets: [
+                    { label: '기관', data: revData.map(d => d.inst), borderColor: '#ff7272', tension: 0.3, fill: false },
+                    { label: '개인', data: revData.map(d => d.indiv), borderColor: '#fbc400', tension: 0.3, fill: false },
+                    { label: '외국인', data: revData.map(d => d.foreign), borderColor: '#4a90e2', tension: 0.3, fill: false }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { grid: { color: '#eee' } },
+                    x: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
