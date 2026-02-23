@@ -1,14 +1,126 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로또 번호 추첨기</title>
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f7f6;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .numbers-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 2rem;
+            min-height: 60px;
+        }
+
+        .ball {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            transition: transform 0.3s;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #357abd;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+    <div class="container">
+        <h1>로또 번호 추첨기</h1>
+        <div id="lotto-numbers" class="numbers-container">
+            <div class="ball" style="color: #999">?</div>
+            <div class="ball" style="color: #999">?</div>
+            <div class="ball" style="color: #999">?</div>
+            <div class="ball" style="color: #999">?</div>
+            <div class="ball" style="color: #999">?</div>
+            <div class="ball" style="color: #999">?</div>
+        </div>
+        <button id="generate-btn">번호 생성하기</button>
+    </div>
+    <script>
+        document.getElementById('generate-btn').addEventListener('click', function() {
+            const numbers = [];
+            while(numbers.length < 6) {
+                const num = Math.floor(Math.random() * 45) + 1;
+                if(!numbers.includes(num)) {
+                    numbers.push(num);
+                }
+            }
+            
+            numbers.sort((a, b) => a - b);
+            
+            const ballContainer = document.getElementById('lotto-numbers');
+            ballContainer.innerHTML = '';
+            
+            numbers.forEach((num, index) => {
+                const ball = document.createElement('div');
+                ball.className = 'ball';
+                ball.textContent = num;
+                
+                if (num <= 10) ball.style.backgroundColor = '#fbc400';
+                else if (num <= 20) ball.style.backgroundColor = '#69c8f2';
+                else if (num <= 30) ball.style.backgroundColor = '#ff7272';
+                else if (num <= 40) ball.style.backgroundColor = '#aaa';
+                else ball.style.backgroundColor = '#b0d840';
+                
+                ballContainer.appendChild(ball);
+                ball.style.animation = `bounce 0.5s ease ${index * 0.1}s`;
+            });
+        });
+    </script>
 </body>
 </html>
