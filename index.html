@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>로또 번호 추첨기</title>
+    <title>투자 데이터 & 로또 추첨기</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Pretendard', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
             background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
         }
 
-        .container {
-            text-align: center;
+        .section {
             background: white;
             padding: 2rem;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 2rem;
-        }
+        h2 { color: #333; margin-bottom: 1.5rem; }
 
+        /* Lotto Styles */
         .numbers-container {
             display: flex;
             gap: 15px;
@@ -35,10 +37,9 @@
             margin-bottom: 2rem;
             min-height: 60px;
         }
-
         .ball {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background-color: #eee;
             display: flex;
@@ -46,41 +47,44 @@
             align-items: center;
             color: white;
             font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            transition: transform 0.3s;
+            box-shadow: inset -3px -3px 7px rgba(0,0,0,0.2);
         }
-
         button {
-            padding: 12px 30px;
-            font-size: 1.1rem;
+            padding: 10px 25px;
             background-color: #4a90e2;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
+            font-size: 1rem;
         }
 
-        button:hover {
-            background-color: #357abd;
-            transform: scale(1.05);
-        }
-
-        button:active {
-            transform: scale(0.95);
+        /* Chart Styles */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
         }
 
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+            50% { transform: translateY(-15px); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>로또 번호 추첨기</h1>
+
+    <!-- 투자 데이터 시각화 섹션 -->
+    <div class="section">
+        <h2>코스피 투자자별 매매동향 (비율)</h2>
+        <div class="chart-container">
+            <canvas id="investorChart"></canvas>
+        </div>
+    </div>
+
+    <!-- 로또 추첨기 섹션 -->
+    <div class="section">
+        <h2>로또 번호 추첨기</h2>
         <div id="lotto-numbers" class="numbers-container">
             <div class="ball" style="color: #999">?</div>
             <div class="ball" style="color: #999">?</div>
@@ -91,36 +95,7 @@
         </div>
         <button id="generate-btn">번호 생성하기</button>
     </div>
-    <script>
-        document.getElementById('generate-btn').addEventListener('click', function() {
-            const numbers = [];
-            while(numbers.length < 6) {
-                const num = Math.floor(Math.random() * 45) + 1;
-                if(!numbers.includes(num)) {
-                    numbers.push(num);
-                }
-            }
-            
-            numbers.sort((a, b) => a - b);
-            
-            const ballContainer = document.getElementById('lotto-numbers');
-            ballContainer.innerHTML = '';
-            
-            numbers.forEach((num, index) => {
-                const ball = document.createElement('div');
-                ball.className = 'ball';
-                ball.textContent = num;
-                
-                if (num <= 10) ball.style.backgroundColor = '#fbc400';
-                else if (num <= 20) ball.style.backgroundColor = '#69c8f2';
-                else if (num <= 30) ball.style.backgroundColor = '#ff7272';
-                else if (num <= 40) ball.style.backgroundColor = '#aaa';
-                else ball.style.backgroundColor = '#b0d840';
-                
-                ballContainer.appendChild(ball);
-                ball.style.animation = `bounce 0.5s ease ${index * 0.1}s`;
-            });
-        });
-    </script>
+
+    <script src="main.js"></script>
 </body>
 </html>
