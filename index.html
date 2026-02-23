@@ -3,136 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>코스피 투자자별 매매동향 분석</title>
+    <title>코스피 투자 분석 대시보드</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --inst-color: #ff7272;
-            --indiv-color: #fbc400;
-            --foreign-color: #4a90e2;
-        }
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Pretendard', -apple-system, system-ui, sans-serif;
+            background-color: #f0f2f5;
             margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .dashboard {
+        .container {
             width: 100%;
-            max-width: 1000px;
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 20px;
+            max-width: 1200px;
         }
-        @media (max-width: 768px) {
-            .dashboard { grid-template-columns: 1fr; }
+        h1 { color: #1a1a1a; margin-bottom: 30px; text-align: center; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
         }
         .card {
             background: white;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
         }
-        h1 { color: #222; margin-bottom: 30px; width: 100%; text-align: center; }
-        h2 { color: #555; font-size: 1.1rem; margin-bottom: 20px; }
-        .chart-container { position: relative; height: 350px; width: 100%; }
-        .latest-info { margin-top: 15px; font-size: 0.9rem; color: #666; }
+        .card.full-width {
+            grid-column: 1 / -1;
+        }
+        h2 { font-size: 1.1rem; color: #444; margin-bottom: 15px; text-align: center; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
     </style>
 </head>
 <body>
 
-    <h1>코스피 투자자별 매매동향</h1>
+    <div class="container">
+        <h1>코스피 투자자 동향 & 수익률 분석</h1>
 
-    <div class="dashboard">
-        <!-- 비율 시각화 (최근 일자 기준) -->
-        <div class="card">
-            <h2>최근 거래 비중 (2026-02-23)</h2>
-            <div class="chart-container">
-                <canvas id="ratioChart"></canvas>
+        <div class="grid">
+            <!-- 1. 최근 거래 비중 -->
+            <div class="card">
+                <h2>최근 거래 비중 (2026-02-23)</h2>
+                <div class="chart-container">
+                    <canvas id="ratioChart"></canvas>
+                </div>
             </div>
-            <div class="latest-info" id="ratio-legend"></div>
-        </div>
 
-        <!-- 추세 시각화 (전체 기간) -->
-        <div class="card">
-            <h2>일자별 순매수 추이</h2>
-            <div class="chart-container">
-                <canvas id="trendChart"></canvas>
+            <!-- 2. 개인 매수와 수익률 상관관계 -->
+            <div class="card">
+                <h2>개인 매수 vs 코스피 수익률</h2>
+                <div class="chart-container">
+                    <canvas id="correlationChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 3. 일자별 전체 추이 (이중축) -->
+            <div class="card full-width">
+                <h2>일자별 순매수 추이 및 지수 수익률</h2>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const data = [
-            {date: '2026-02-23', inst: -1365589, indiv: 2368275, foreign: -1179826},
-            {date: '2026-02-20', inst: 903343, indiv: -345127, foreign: -712880},
-            {date: '2026-02-19', inst: 1394876, indiv: -683740, foreign: -872276},
-            {date: '2026-02-13', inst: -998369, indiv: 1792993, foreign: -940583},
-            {date: '2026-02-12', inst: 1044122, indiv: -4303988, foreign: 3159894},
-            {date: '2026-02-11', inst: 389912, indiv: -1472360, foreign: 905526},
-            {date: '2026-02-10', inst: 119710, indiv: -467377, foreign: 159554},
-            {date: '2026-02-09', inst: 3027332, indiv: -3689198, foreign: 501395},
-            {date: '2026-02-06', inst: 509044, indiv: 2440797, foreign: -3162705},
-            {date: '2026-02-05', inst: -3425569, indiv: 8154850, foreign: -5073670},
-            {date: '2026-02-04', inst: 1170169, indiv: -351578, foreign: -993770},
-            {date: '2026-02-03', inst: 2070462, indiv: -2885178, foreign: 745376},
-            {date: '2026-02-02', inst: -2889940, indiv: 5268908, foreign: -2489186},
-            {date: '2026-01-30', inst: -2328055, indiv: 4083588, foreign: -1949628},
-            {date: '2026-01-29', inst: -1993751, indiv: 3371592, foreign: -1500385},
-            {date: '2026-01-28', inst: -3489468, indiv: 3262219, foreign: 369282},
-            {date: '2026-01-27', inst: -899916, indiv: -23147, foreign: 925220},
-            {date: '2026-01-26', inst: -3414882, indiv: 3554502, foreign: -163296},
-            {date: '2026-01-23', inst: -81202, indiv: -217022, foreign: 172239}
-        ];
+        const rawData = [
+            {date: '02/23', inst: -1365589, indiv: 2368275, foreign: -1179826, change: 0.65},
+            {date: '02/20', inst: 903343, indiv: -345127, foreign: -712880, change: 2.31},
+            {date: '02/19', inst: 1394876, indiv: -683740, foreign: -872276, change: 3.09},
+            {date: '02/13', inst: -998369, indiv: 1792993, foreign: -940583, change: -0.28},
+            {date: '02/12', inst: 1044122, indiv: -4303988, foreign: 3159894, change: 3.13},
+            {date: '02/11', inst: 389912, indiv: -1472360, foreign: 905526, change: 1.00},
+            {date: '02/10', inst: 119710, indiv: -467377, foreign: 159554, change: 0.07},
+            {date: '02/09', inst: 3027332, indiv: -3689198, foreign: 501395, change: 4.10},
+            {date: '02/06', inst: 509044, indiv: 2440797, foreign: -3162705, change: -1.44},
+            {date: '02/05', inst: -3425569, indiv: 8154850, foreign: -5073670, change: -3.86},
+            {date: '02/04', inst: 1170169, indiv: -351578, foreign: -993770, change: 1.57},
+            {date: '02/03', inst: 2070462, indiv: -2885178, foreign: 745376, change: 6.84},
+            {date: '02/02', inst: -2889940, indiv: 5268908, foreign: -2489186, change: -5.26},
+            {date: '01/30', inst: -2328055, indiv: 4083588, foreign: -1949628, change: 0.06},
+            {date: '01/29', inst: -1993751, indiv: 3371592, foreign: -1500385, change: 0.98},
+            {date: '01/28', inst: -3489468, indiv: 3262219, foreign: 369282, change: 1.69},
+            {date: '01/27', inst: -899916, indiv: -23147, foreign: 925220, change: 2.73},
+            {date: '01/26', inst: -3414882, indiv: 3554502, foreign: -163296, change: -0.81},
+            {date: '01/23', inst: -81202, indiv: -217022, foreign: 172239, change: 0.76}
+        ].reverse();
 
-        // 1. 비율 차트 (최근 일자: 2026-02-23)
-        const latest = data[0];
-        const absSum = Math.abs(latest.inst) + Math.abs(latest.indiv) + Math.abs(latest.foreign);
-        
+        // 1. 비율 차트 (Doughnut)
         new Chart(document.getElementById('ratioChart'), {
             type: 'doughnut',
             data: {
                 labels: ['기관', '개인', '외국인'],
                 datasets: [{
-                    data: [Math.abs(latest.inst), Math.abs(latest.indiv), Math.abs(latest.foreign)],
-                    backgroundColor: ['#ff7272', '#fbc400', '#4a90e2'],
-                    borderWidth: 0
+                    data: [Math.abs(rawData[18].inst), Math.abs(rawData[18].indiv), Math.abs(rawData[18].foreign)],
+                    backgroundColor: ['#ff7272', '#fbc400', '#4a90e2']
+                }]
+            }
+        });
+
+        // 2. 상관관계 차트 (Scatter: 개인 매수 vs 수익률)
+        new Chart(document.getElementById('correlationChart'), {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: '개인 매수와 수익률 관계',
+                    data: rawData.map(d => ({ x: d.indiv, y: d.change })),
+                    backgroundColor: '#fbc400'
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' }
+                scales: {
+                    x: { title: { display: true, text: '개인 순매수량' } },
+                    y: { title: { display: true, text: '코스피 수익률 (%)' } }
                 }
             }
         });
 
-        // 2. 추세 차트 (전체 기간)
-        const revData = [...data].reverse();
+        // 3. 트렌드 차트 (Combo: 매수량 Bar + 수익률 Line)
         new Chart(document.getElementById('trendChart'), {
-            type: 'line',
+            type: 'bar',
             data: {
-                labels: revData.map(d => d.date.substring(5)),
+                labels: rawData.map(d => d.date),
                 datasets: [
-                    { label: '기관', data: revData.map(d => d.inst), borderColor: '#ff7272', tension: 0.3, fill: false },
-                    { label: '개인', data: revData.map(d => d.indiv), borderColor: '#fbc400', tension: 0.3, fill: false },
-                    { label: '외국인', data: revData.map(d => d.foreign), borderColor: '#4a90e2', tension: 0.3, fill: false }
+                    { label: '개인 매수', data: rawData.map(d => d.indiv), backgroundColor: 'rgba(251, 196, 0, 0.5)', yAxisID: 'y' },
+                    { label: '지수 수익률(%)', data: rawData.map(d => d.change), type: 'line', borderColor: '#333', yAxisID: 'y1', tension: 0.4 }
                 ]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
                 scales: {
-                    y: { grid: { color: '#eee' } },
-                    x: { grid: { display: false } }
-                },
-                plugins: {
-                    legend: { position: 'bottom' }
+                    y: { type: 'linear', position: 'left', title: { display: true, text: '매수량' } },
+                    y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: '수익률 (%)' } }
                 }
             }
         });
